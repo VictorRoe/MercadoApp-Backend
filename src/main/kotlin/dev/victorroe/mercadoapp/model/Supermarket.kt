@@ -7,12 +7,10 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 
 @Entity
-@Table(name = "products")
-data class Product(
+@Table(name = "supermarkets")
+data class Supermarket(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long?,
-//    val categoryId : Category
     val name: String,
-    val unit: String,
 )
