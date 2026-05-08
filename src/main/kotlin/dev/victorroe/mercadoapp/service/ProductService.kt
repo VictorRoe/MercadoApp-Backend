@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service
 @Service
 class ProductService(private val repository: ProductRepository) {
 
-    fun findAll(): List<Product> = repository.findAll().toList()
+    fun findAll(): List<Product> = repository.findAll()
 
     fun findProductById(id:Long): Product? = repository.findByIdOrNull(id)
 

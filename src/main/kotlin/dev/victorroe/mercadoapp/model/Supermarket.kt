@@ -12,5 +12,6 @@ data class Supermarket(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long?,
-    val name: String,
+
+    val name: String
 )
