@@ -5,8 +5,11 @@ import dev.victorroe.mercadoapp.model.Status.*
 
 import dev.victorroe.mercadoapp.dto.shoppinglist.CreateShoppingListDTO
 import dev.victorroe.mercadoapp.dto.shoppinglist.ShoppingListDTO
+import dev.victorroe.mercadoapp.mapper.ProductMapper
 import dev.victorroe.mercadoapp.mapper.ShoppingListMapper
+import dev.victorroe.mercadoapp.mapper.SupermarketMapper
 import dev.victorroe.mercadoapp.model.ShoppingItems
+import dev.victorroe.mercadoapp.model.ShoppingList
 import dev.victorroe.mercadoapp.repository.ProductRepository
 import dev.victorroe.mercadoapp.repository.ShoppingItemRepository
 import dev.victorroe.mercadoapp.repository.ShoppingListRepository
@@ -22,48 +25,56 @@ class ShoppingListService(
     private val supermarketRepository: SupermarketRepository,
     private val shoppingListRepository: ShoppingListRepository,
     private val shopppingItemsRepository: ShoppingItemRepository,
-    private val productRepository: ProductRepository
+    private val productRepository: ProductRepository,
+    private val supermarketMapper: SupermarketMapper,
+    private val productMapper: ProductMapper,
 ) {
 
     fun findListById(listId: Long): ShoppingListDTO {
         val entity = shoppingListRepository.findById(listId)
             .orElseThrow{ RuntimeException("No shopping list found for id $listId") }
 
-        return mapper.toDTO(entity)
+        val model = mapper.toModel(entity)
+
+        return mapper.toDTO(model)
     }
 
     @Transactional
     fun create(dto: CreateShoppingListDTO): ShoppingListDTO {
-        val supermarketId = supermarketRepository.findById(dto.supermarketId)
+        val supermarketEntity = supermarketRepository.findById(dto.supermarketId)
             .orElseThrow{ EntityNotFoundException("Supermarket ID no existe: ${dto.supermarketId}") }
 
-        val initialEntity = mapper.toEntity(dto)
+        val supermarketModel = supermarketMapper.toModel(supermarketEntity)
 
-        val entityToSave = initialEntity.copy(
-            supermarket = supermarketId,
+        val model = ShoppingList(
+            name = dto.name,
             status = ACTIVATED,
             date = LocalDateTime.now(),
+            supermarket = supermarketModel,
         )
 
-        return mapper.toDTO(shoppingListRepository.save(entityToSave))
+        val savedEntity = shoppingListRepository.save(mapper.toEntity(model))
+        val savedModel = mapper.toModel(savedEntity)
+
+        return mapper.toDTO(savedModel)
     }
 
     @Transactional
     fun addItemToList(listId: Long, dto: AddItemRequestDTO){
 
-        val shoppingList = shoppingListRepository.findById(listId)
-            .orElseThrow{ RuntimeException("No shopping list found for id $listId") }
+       val listEntity = shoppingListRepository.findById(listId)
+        .orElseThrow{ RuntimeException("No shopping list found for id $listId") }
 
-        val product = productRepository.findById(dto.productId)
-            .orElseThrow{ RuntimeException("No product found for id $listId") }
+        val productEntity = productRepository.findById(dto.productId)
+        .orElseThrow{ EntityNotFoundException("Product with id $dto.productId not found") }
 
-        val newItem = ShoppingItems(
-            shoppingList = shoppingList,
-            product = product,
-            quantity = dto.quantity
+        val newItemModel = ShoppingItems(
+            shoppingList = mapper.toModel(listEntity),
+            product = productMapper.toModel(productEntity),
+            quantity = dto.quantity,
         )
 
-        shopppingItemsRepository.save(newItem)
+        shopppingItemsRepository.save(mapper.toItemEntity(newItemModel))
     }
 
 

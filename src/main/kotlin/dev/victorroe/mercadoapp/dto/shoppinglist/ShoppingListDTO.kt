@@ -9,7 +9,7 @@ data class ShoppingListDTO(
     val id: Long?,
     val name: String?,
     val status: Status?,
-    val supermarketName: String,
+    val supermarketName: String?,
     val date: LocalDateTime?,
     val items: List<ShoppingItemsDTO>?
 )

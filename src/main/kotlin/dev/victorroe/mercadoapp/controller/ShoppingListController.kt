@@ -4,7 +4,6 @@ import dev.victorroe.mercadoapp.dto.shoppingitems.AddItemRequestDTO
 import dev.victorroe.mercadoapp.dto.shoppinglist.CreateShoppingListDTO
 import dev.victorroe.mercadoapp.dto.shoppinglist.ShoppingListDTO
 import dev.victorroe.mercadoapp.service.ShoppingListService
-import org.apache.coyote.Response
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
