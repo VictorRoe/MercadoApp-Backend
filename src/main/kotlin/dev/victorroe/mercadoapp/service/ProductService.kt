@@ -1,16 +1,27 @@
 package dev.victorroe.mercadoapp.service
 
+import dev.victorroe.mercadoapp.mapper.ProductMapper
 import dev.victorroe.mercadoapp.model.Product
 import dev.victorroe.mercadoapp.repository.ProductRepository
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
 @Service
-class ProductService(private val repository: ProductRepository) {
+class ProductService(
+    private val repository: ProductRepository,
+    private val mapper: ProductMapper,
+    ) {
 
-    fun findAll(): List<Product> = repository.findAll().toList()
+    fun findAll(): List<Product> = mapper.toModelList(repository.findAll())
 
-    fun findProductById(id:Long): Product? = repository.findByIdOrNull(id)
+    fun findById(id: Long): Product? {
+        val entity = repository.findById(id).orElse(null)
+        return entity?.let { mapper.toModel(it) }
+    }
 
-    fun save(product: Product): Product = repository.save(product)
+    fun create(product: Product): Product{
+
+        val entity = mapper.toEntity(product)
+        val saved = repository.save(entity)
+        return mapper.toModel(saved)
+    }
 }

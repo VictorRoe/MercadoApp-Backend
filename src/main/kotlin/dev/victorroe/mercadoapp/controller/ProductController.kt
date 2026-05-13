@@ -19,11 +19,11 @@ class ProductController(private val service: ProductService) {
     fun findAll() = ResponseEntity.ok(service.findAll())
 
     @GetMapping("/{id}")
-    fun findProductById(@PathVariable id:Long) = ResponseEntity.ok(service.findProductById(id))
+    fun findProductById(@PathVariable id:Long) = ResponseEntity.ok(service.findById(id))
 
     @PostMapping
     fun save(@RequestBody product: Product): ResponseEntity<Product> {
-        val savedProduct = service.save(product)
+        val savedProduct = service.create(product)
         return ResponseEntity.status(HttpStatus.CREATED).body(savedProduct)
     }
 }

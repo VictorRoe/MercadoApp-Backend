@@ -1,17 +1,14 @@
 package dev.victorroe.mercadoapp.model
 
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.Table
+import dev.victorroe.mercadoapp.model.Status.ACTIVATED
 
-@Entity
-@Table(name = "shopping_list")
+import java.time.LocalDateTime
+
 data class ShoppingList(
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long?,
-    val name: String
+    val id: Long? = null,
+    val name: String,
+    val status: Status = ACTIVATED,
+    val supermarket: Supermarket?,
+    val date: LocalDateTime = LocalDateTime.now(),
+    val items: MutableList<ShoppingItems>? = mutableListOf(),
 )
