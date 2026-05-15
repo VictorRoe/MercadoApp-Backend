@@ -30,6 +30,7 @@ class ShoppingListService(
     private val productMapper: ProductMapper,
 ) {
 
+    @Transactional
     fun findListById(listId: Long): ShoppingListDTO {
         val entity = shoppingListRepository.findById(listId)
             .orElseThrow{ RuntimeException("No shopping list found for id $listId") }
