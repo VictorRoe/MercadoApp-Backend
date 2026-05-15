@@ -30,6 +30,7 @@ class ShoppingListService(
     private val productMapper: ProductMapper,
 ) {
 
+// TODO: Migrar mas adelante cuando las listas crezcan a una QUERY en repositories
     @Transactional
     fun findListById(listId: Long): ShoppingListDTO {
         val entity = shoppingListRepository.findById(listId)
