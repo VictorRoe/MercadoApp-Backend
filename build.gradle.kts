@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "dev.victorroe"
-version = "0.0.1-SNAPSHOT"
+version = "1.0.0"
 
 java {
 	toolchain {
@@ -23,13 +23,18 @@ repositories {
 dependencies {
 
 //	Spring Web Starter
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("tools.jackson.module:jackson-module-kotlin")
 
 //	H2 Persistence
-	implementation("org.springframework.boot:spring-boot-h2console")
-	runtimeOnly("com.h2database:h2")
+//	implementation("org.springframework.boot:spring-boot-h2console")
+//	runtimeOnly("com.h2database:h2")
+
+//	PostgresDB
+
+	runtimeOnly("org.postgresql:postgresql")
 
 //	JPA
 
@@ -38,8 +43,6 @@ dependencies {
 //	Spring Boot DevTools
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 
-//	JDBC
-	implementation("org.springframework.boot:spring-boot-starter-session-jdbc")
 
 //	MapStruct
 	implementation("org.mapstruct:mapstruct:1.6.3")
@@ -51,6 +54,7 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testImplementation("org.springframework.boot:spring-boot-starter-session-jdbc-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

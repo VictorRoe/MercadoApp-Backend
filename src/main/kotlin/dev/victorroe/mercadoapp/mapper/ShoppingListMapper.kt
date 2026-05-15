@@ -14,6 +14,7 @@ import org.mapstruct.Mapping
 interface ShoppingListMapper {
 
     @Mapping(source =  "supermarket.name", target = "supermarketName")
+    @Mapping(source = "date", target = "date", dateFormat = "dd/MM/yyyy HH:mm")
     fun toDTO(entity: ShoppingList): ShoppingListDTO
 
     @Mapping(target = "id", ignore = true)
