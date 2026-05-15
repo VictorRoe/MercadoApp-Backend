@@ -31,7 +31,7 @@ class ShoppingListService(
 ) {
 
 // TODO: Migrar mas adelante cuando las listas crezcan a una QUERY en repositories
-    @Transactional
+    @Transactional(readOnly = true)
     fun findListById(listId: Long): ShoppingListDTO {
         val entity = shoppingListRepository.findById(listId)
             .orElseThrow{ RuntimeException("No shopping list found for id $listId") }
