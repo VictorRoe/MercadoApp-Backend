@@ -1,0 +1,7 @@
+CREATE TABLE products
+(
+    ID   BIGINT       NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    unit VARCHAR(100) NOT NULL,
+    PRIMARY KEY (ID)
+);
