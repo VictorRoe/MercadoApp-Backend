@@ -28,6 +28,7 @@ USER spring
 # Copiar el JAR desde la etapa de build
 COPY --from=build /app/build/libs/*.jar app.jar
 
+EXPOSE 8080
 # Optimización de JVM para entornos con poca RAM (Render Free)
 # - MaxRAMPercentage: Evita que la JVM intente usar más RAM de la disponible en el contenedor
 # - Xss256k: Reduce el tamaño del stack de cada hilo para ahorrar memoria
