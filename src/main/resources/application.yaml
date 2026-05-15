@@ -2,11 +2,10 @@ spring:
   application:
     name: mercadoapp
   jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-#      Quitar esta config cuando este en produccion
-      ddl-auto: 'create-drop'
-
+      ddl-auto: 'create-only'
     show-sql: true
-  h2:
-    console:
-      enabled: true
+  datasource:
+    url: ${URL_DB}
+    driver-class-name: org.postgresql.Driver
