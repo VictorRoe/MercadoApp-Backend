@@ -21,7 +21,7 @@ class ProductService(
         return entity?.let { mapper.toModel(it) }
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     fun create(product: Product): Product{
 
         val entity = mapper.toEntity(product)
