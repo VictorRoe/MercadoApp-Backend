@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: mercadoapp
+
+  # Configuración por defecto (H2)
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 12345
+
+  jpa:
+    hibernate:
+      ddl-auto: 'create-drop'
+    show-sql: true
+  h2:
+    console:
+      enabled: true

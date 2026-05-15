@@ -29,8 +29,8 @@ dependencies {
 	implementation("tools.jackson.module:jackson-module-kotlin")
 
 //	H2 Persistence
-//	implementation("org.springframework.boot:spring-boot-h2console")
-//	runtimeOnly("com.h2database:h2")
+	implementation("org.springframework.boot:spring-boot-h2console")
+	runtimeOnly("com.h2database:h2")
 
 //	PostgresDB
 
