@@ -8,8 +8,12 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password: 12345
+  sql:
+    init:
+      mode: never
 
   jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: 'create-drop'
     show-sql: true
