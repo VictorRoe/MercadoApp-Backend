@@ -28,6 +28,9 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("tools.jackson.module:jackson-module-kotlin")
 
+//	Swagger / OpenAPI
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
+
 //	H2 Persistence
 	implementation("org.springframework.boot:spring-boot-h2console")
 	runtimeOnly("com.h2database:h2")

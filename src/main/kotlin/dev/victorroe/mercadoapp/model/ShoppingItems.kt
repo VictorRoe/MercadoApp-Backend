@@ -5,4 +5,5 @@ data class ShoppingItems(
     val product: Product,
     val quantity: Int,
     val shoppingList: ShoppingList? = null,
+    val checked: Boolean = false,
 )
