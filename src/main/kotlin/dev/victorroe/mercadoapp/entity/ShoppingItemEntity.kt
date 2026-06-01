@@ -23,6 +23,5 @@ class ShoppingItemEntity(
     @JoinColumn(name = "product_id")
     var product: ProductEntity? = null,
     var quantity: Int? = null,
-
-) {
-}
+    var checked: Boolean = false,
+)
