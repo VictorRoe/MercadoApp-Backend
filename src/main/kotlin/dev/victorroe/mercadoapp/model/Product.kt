@@ -9,4 +9,6 @@ data class Product(
     val name: String,
     @Schema(description = "Unidad de medida (ej. kg, litro, unidad)")
     val unit: String,
+    @Schema(description = "Categoría del producto")
+    val category: Category?,
 )
