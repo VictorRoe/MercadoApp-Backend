@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -17,6 +18,13 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/supermarket")
 @Tag(name = "Supermarkets", description = "Gestión de supermercados")
 class SupermarketController(private val service: SupermarketService) {
+
+    @GetMapping
+    @Operation(summary = "Obtener todos los supermercados")
+    @ApiResponse(responseCode = "200", description = "Lista de supermercados")
+    fun findAll(): ResponseEntity<List<SupermarketDTO>> {
+        return ResponseEntity.ok(service.findAll())
+    }
 
     @PostMapping
     @Operation(summary = "Crear un supermercado")

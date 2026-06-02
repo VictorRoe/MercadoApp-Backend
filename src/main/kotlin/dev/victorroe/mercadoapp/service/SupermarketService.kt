@@ -22,4 +22,8 @@ class SupermarketService(
         return mapper.toDto(savedModel)
     }
 
+    fun findAll(): List<SupermarketDTO> {
+        return repository.findAll().map { mapper.toDto(mapper.toModel(it)) }
+    }
+
 }
