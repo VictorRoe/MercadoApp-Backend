@@ -12,3 +12,9 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-test-query: SELECT 1
+      keepalive-time: 30000
+      connection-timeout: 20000
+      idle-timeout: 600000
+      max-lifetime: 1800000
