@@ -6,6 +6,7 @@ import dev.victorroe.mercadoapp.dto.shoppingitems.UpdateShoppingItemDTO
 import dev.victorroe.mercadoapp.dto.shoppinglist.CreateShoppingListDTO
 import dev.victorroe.mercadoapp.dto.shoppinglist.ShoppingListDTO
 import dev.victorroe.mercadoapp.dto.shoppinglist.UpdateShoppingListDTO
+import dev.victorroe.mercadoapp.model.Status
 import dev.victorroe.mercadoapp.service.ShoppingListService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -29,8 +31,10 @@ class ShoppingListController(private val service: ShoppingListService) {
     @GetMapping
     @Operation(summary = "Obtener todas las listas", description = "Retorna todas las listas de compras registradas")
     @ApiResponse(responseCode = "200", description = "Listas obtenidas exitosamente")
-    fun getAllLists(): ResponseEntity<List<ShoppingListDTO>> {
-        return ResponseEntity.ok(service.findAllLists())
+    fun getAllLists(
+        @RequestParam(required = false) status: Status?
+    ): ResponseEntity<List<ShoppingListDTO>> {
+        return ResponseEntity.ok(service.findAllLists(status))
     }
 
     @GetMapping("/{id}")
