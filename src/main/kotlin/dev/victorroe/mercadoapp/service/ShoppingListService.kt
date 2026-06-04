@@ -3,6 +3,7 @@ package dev.victorroe.mercadoapp.service
 import dev.victorroe.mercadoapp.dto.shoppingitems.AddItemRequestDTO
 import dev.victorroe.mercadoapp.dto.shoppingitems.UpdateShoppingItemDTO
 import dev.victorroe.mercadoapp.dto.shoppingitems.ShoppingItemsDTO
+import dev.victorroe.mercadoapp.model.Status
 import dev.victorroe.mercadoapp.model.Status.*
 import dev.victorroe.mercadoapp.dto.shoppinglist.CreateShoppingListDTO
 import dev.victorroe.mercadoapp.dto.shoppinglist.ShoppingListDTO
@@ -74,8 +75,13 @@ class ShoppingListService(
     }
 
     @Transactional(readOnly = true)
-    fun findAllLists(): List<ShoppingListDTO> {
-        return shoppingListRepository.findAll()
+    fun findAllLists(status: Status? = null): List<ShoppingListDTO> {
+        val entities = if (status != null) {
+            shoppingListRepository.findByStatus(status)
+        } else {
+            shoppingListRepository.findAll()
+        }
+        return entities
             .map { mapper.toModel(it) }
             .map { mapper.toDTO(it) }
     }
