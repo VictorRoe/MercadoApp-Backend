@@ -1,5 +1,6 @@
 package dev.victorroe.mercadoapp.service
 
+import dev.victorroe.mercadoapp.exception.ResourceNotFoundException
 import dev.victorroe.mercadoapp.mapper.ProductMapper
 import dev.victorroe.mercadoapp.model.Product
 import dev.victorroe.mercadoapp.repository.ProductRepository
@@ -10,20 +11,20 @@ import org.springframework.transaction.annotation.Transactional
 class ProductService(
     private val repository: ProductRepository,
     private val mapper: ProductMapper,
-    ) {
+) {
 
     @Transactional(readOnly = true)
     fun findAll(): List<Product> = mapper.toModelList(repository.findAll())
 
     @Transactional(readOnly = true)
-    fun findById(id: Long): Product? {
-        val entity = repository.findById(id).orElse(null)
-        return entity?.let { mapper.toModel(it) }
+    fun findById(id: Long): Product {
+        val entity = repository.findById(id)
+            .orElseThrow { ResourceNotFoundException("Product with id $id not found") }
+        return mapper.toModel(entity)
     }
 
     @Transactional
-    fun create(product: Product): Product{
-
+    fun create(product: Product): Product {
         val entity = mapper.toEntity(product)
         val saved = repository.save(entity)
         return mapper.toModel(saved)
