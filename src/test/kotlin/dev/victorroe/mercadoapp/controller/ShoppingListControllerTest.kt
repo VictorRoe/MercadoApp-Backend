@@ -41,12 +41,22 @@ class ShoppingListControllerTest {
 
     @Test
     fun `GET shoppingList returns 200 with all lists`() {
-        given(service.findAllLists()).willReturn(listOf(activatedList()))
+        given(service.findAllLists(null)).willReturn(listOf(activatedList()))
 
         mockMvc.perform(get("/shoppingList"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$[0].id").value(1))
             .andExpect(jsonPath("$[0].name").value("Compra Semanal"))
+            .andExpect(jsonPath("$[0].status").value("ACTIVATED"))
+    }
+
+    @Test
+    fun `GET shoppingList with status returns 200 with filtered lists`() {
+        given(service.findAllLists(Status.ACTIVATED)).willReturn(listOf(activatedList()))
+
+        mockMvc.perform(get("/shoppingList").param("status", "ACTIVATED"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].id").value(1))
             .andExpect(jsonPath("$[0].status").value("ACTIVATED"))
     }
 

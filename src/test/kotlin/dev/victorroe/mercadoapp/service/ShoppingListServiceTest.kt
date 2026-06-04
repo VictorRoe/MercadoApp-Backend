@@ -4,6 +4,8 @@ import dev.victorroe.mercadoapp.dto.shoppingitems.AddItemRequestDTO
 import dev.victorroe.mercadoapp.dto.shoppingitems.UpdateShoppingItemDTO
 import dev.victorroe.mercadoapp.dto.shoppinglist.CreateShoppingListDTO
 import dev.victorroe.mercadoapp.dto.shoppinglist.UpdateShoppingListDTO
+import dev.victorroe.mercadoapp.model.Status
+import org.mockito.Mockito.verify
 import dev.victorroe.mercadoapp.entity.ShoppingListEntity
 import dev.victorroe.mercadoapp.exception.ResourceNotFoundException
 import dev.victorroe.mercadoapp.mapper.ProductMapper
@@ -131,5 +133,23 @@ class ShoppingListServiceTest {
         assertThrows<ResourceNotFoundException> {
             service.toggleItem(1L, 99L, UpdateShoppingItemDTO(checked = true))
         }
+    }
+
+    @Test
+    fun `findAllLists calls findAll when status is null`() {
+        given(shoppingListRepository.findAll()).willReturn(emptyList())
+
+        service.findAllLists(null)
+
+        verify(shoppingListRepository).findAll()
+    }
+
+    @Test
+    fun `findAllLists calls findByStatus when status is provided`() {
+        given(shoppingListRepository.findByStatus(Status.ACTIVATED)).willReturn(emptyList())
+
+        service.findAllLists(Status.ACTIVATED)
+
+        verify(shoppingListRepository).findByStatus(Status.ACTIVATED)
     }
 }
