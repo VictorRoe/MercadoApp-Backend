@@ -4,11 +4,14 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: 'none'
+      ddl-auto: "none"
     show-sql: true
     open-in-view: false
+    properties:
+      hibernate:
+        use-nationalized-character-data: false
   datasource:
-    url: ${SPRING_DATASOURCE_URL}?prepareThreshold=0&preparedStatementCacheQueries=0
+    url: ${SPRING_DATASOURCE_URL}?prepareThreshold=0
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -16,5 +19,6 @@ spring:
       connection-test-query: SELECT 1
       keepalive-time: 30000
       connection-timeout: 20000
-      idle-timeout: 600000
-      max-lifetime: 1800000
+      idle-timeout: 120000
+      max-lifetime: 600000
+      maximum-pool-size: 4
