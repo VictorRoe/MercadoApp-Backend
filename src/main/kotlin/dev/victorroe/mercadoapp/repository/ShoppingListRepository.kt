@@ -14,7 +14,7 @@ interface ShoppingListRepository : JpaRepository<ShoppingListEntity, Long> {
 
     @Modifying
     @Transactional
-    @Query("UPDATE ShoppingListEntity s SET s.status = 'EXPIRED' WHERE s.status = 'ACTIVATED' AND s.date < :threshold")
+    @Query("UPDATE ShoppingListEntity s SET s.status = 'EXPIRED' WHERE s.status = 'COMPLETED' AND s.date < :threshold")
     fun updateExpiredLists(threshold: LocalDateTime): Int
 
     fun findByStatus(status: Status): List<ShoppingListEntity>
