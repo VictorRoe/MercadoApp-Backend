@@ -4,9 +4,11 @@ import dev.victorroe.mercadoapp.model.Product
 import dev.victorroe.mercadoapp.service.ProductService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/products")
 @Tag(name = "Products", description = "Gestión de productos")
+@SecurityRequirement(name = "bearerAuth")
 class ProductController(private val service: ProductService) {
 
     @GetMapping
@@ -31,6 +34,7 @@ class ProductController(private val service: ProductService) {
     fun findProductById(@PathVariable id: Long) = ResponseEntity.ok(service.findById(id))
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Crear un producto")
     @ApiResponse(responseCode = "201", description = "Producto creado exitosamente")
     fun save(@RequestBody product: Product): ResponseEntity<Product> {
