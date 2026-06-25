@@ -17,7 +17,8 @@ class AuthService(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
     private val jwtService: JwtService,
-    private val authenticationManager: AuthenticationManager
+    private val authenticationManager: AuthenticationManager,
+    private val tokenDenylistService: TokenDenylistService
 ) {
 
     fun register(request: RegisterRequestDTO): AuthResponseDTO {
@@ -31,7 +32,9 @@ class AuthService(
             role = Role.USER
         )
         val saved = userRepository.save(user)
-        val token = jwtService.generateToken(saved.id!!, saved.email!!, saved.role!!.name)
+        val token = jwtService.generateToken(
+            saved.id!!, saved.email!!, firstName(saved.fullName), saved.role!!.name
+        )
         return AuthResponseDTO(token)
     }
 
@@ -40,7 +43,16 @@ class AuthService(
             UsernamePasswordAuthenticationToken(request.email, request.password)
         )
         val user = userRepository.findByEmail(request.email).orElseThrow()
-        val token = jwtService.generateToken(user.id!!, user.email!!, user.role!!.name)
+        val token = jwtService.generateToken(
+            user.id!!, user.email!!, firstName(user.fullName), user.role!!.name
+        )
         return AuthResponseDTO(token)
     }
+
+    fun logout(token: String) {
+        tokenDenylistService.revoke(token)
+    }
+
+    private fun firstName(fullName: String?): String =
+        fullName?.trim()?.split(Regex("\\s+"))?.firstOrNull().orEmpty()
 }

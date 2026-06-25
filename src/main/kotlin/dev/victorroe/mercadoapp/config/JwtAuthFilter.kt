@@ -1,6 +1,7 @@
 package dev.victorroe.mercadoapp.config
 
 import dev.victorroe.mercadoapp.service.JwtService
+import dev.victorroe.mercadoapp.service.TokenDenylistService
 import dev.victorroe.mercadoapp.service.UserSecurityService
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
@@ -14,7 +15,8 @@ import org.springframework.web.filter.OncePerRequestFilter
 @Component
 class JwtAuthFilter(
     private val jwtService: JwtService,
-    private val userSecurityService: UserSecurityService
+    private val userSecurityService: UserSecurityService,
+    private val tokenDenylistService: TokenDenylistService
 ) : OncePerRequestFilter() {
 
     override fun doFilterInternal(
@@ -37,7 +39,10 @@ class JwtAuthFilter(
             } catch (_: Exception) {
                 null
             }
-            if (userDetails != null && jwtService.isTokenValid(token, userDetails)) {
+            if (userDetails != null &&
+                jwtService.isTokenValid(token, userDetails) &&
+                !tokenDenylistService.isRevoked(token)
+            ) {
                 val authToken = UsernamePasswordAuthenticationToken(
                     userDetails, null, userDetails.authorities
                 )

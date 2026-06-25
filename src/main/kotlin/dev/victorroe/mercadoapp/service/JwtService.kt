@@ -18,11 +18,12 @@ class JwtService(
         Keys.hmacShaKeyFor(secret.toByteArray(Charsets.UTF_8))
     }
 
-    fun generateToken(userId: Long, email: String, role: String): String {
+    fun generateToken(userId: Long, email: String, name: String, role: String): String {
         val now = Date()
         return Jwts.builder()
             .subject(email)
             .claim("userId", userId)
+            .claim("name", name)
             .claim("role", role)
             .issuedAt(now)
             .expiration(Date(now.time + expiration))
@@ -31,6 +32,8 @@ class JwtService(
     }
 
     fun extractEmail(token: String): String? = extractClaim(token) { it.subject }
+
+    fun extractExpiration(token: String): Date = extractClaim(token) { it.expiration }
 
     fun isTokenValid(token: String, userDetails: UserDetails): Boolean {
         val email = extractEmail(token) ?: return false
