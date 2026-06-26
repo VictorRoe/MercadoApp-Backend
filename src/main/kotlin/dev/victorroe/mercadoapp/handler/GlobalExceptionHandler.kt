@@ -1,6 +1,7 @@
 package dev.victorroe.mercadoapp.handler
 
 import dev.victorroe.mercadoapp.exception.DuplicateEmailException
+import dev.victorroe.mercadoapp.exception.InvalidRefreshTokenException
 import dev.victorroe.mercadoapp.exception.ResourceNotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -27,6 +28,12 @@ class GlobalExceptionHandler {
     fun handleResourceNotFound(ex: ResourceNotFoundException): ResponseEntity<ProblemDetail> {
         val problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.message ?: "Resource not found")
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem)
+    }
+
+    @ExceptionHandler(InvalidRefreshTokenException::class)
+    fun handleInvalidRefreshToken(ex: InvalidRefreshTokenException): ResponseEntity<ProblemDetail> {
+        val problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.message ?: "Invalid refresh token")
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem)
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException::class)

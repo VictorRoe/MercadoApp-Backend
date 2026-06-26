@@ -12,11 +12,14 @@ import javax.crypto.SecretKey
 @Service
 class JwtService(
     @Value("\${app.jwt.secret}") private val secret: String,
-    @Value("\${app.jwt.expiration}") private val expiration: Long
+    @Value("\${app.jwt.access-expiration}") private val accessExpiration: Long
 ) {
     private val signingKey: SecretKey by lazy {
         Keys.hmacShaKeyFor(secret.toByteArray(Charsets.UTF_8))
     }
+
+    /** Access-token lifetime in seconds, for the `expiresIn` field in auth responses. */
+    fun accessTokenExpiresInSeconds(): Long = accessExpiration / 1000
 
     fun generateToken(userId: Long, email: String, name: String, role: String): String {
         val now = Date()
@@ -26,7 +29,7 @@ class JwtService(
             .claim("name", name)
             .claim("role", role)
             .issuedAt(now)
-            .expiration(Date(now.time + expiration))
+            .expiration(Date(now.time + accessExpiration))
             .signWith(signingKey)
             .compact()
     }

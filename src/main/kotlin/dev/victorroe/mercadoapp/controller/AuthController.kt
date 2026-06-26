@@ -2,6 +2,7 @@ package dev.victorroe.mercadoapp.controller
 
 import dev.victorroe.mercadoapp.dto.auth.AuthResponseDTO
 import dev.victorroe.mercadoapp.dto.auth.LoginRequestDTO
+import dev.victorroe.mercadoapp.dto.auth.RefreshRequestDTO
 import dev.victorroe.mercadoapp.dto.auth.RegisterRequestDTO
 import dev.victorroe.mercadoapp.service.AuthService
 import io.swagger.v3.oas.annotations.Operation
@@ -27,19 +28,25 @@ class AuthController(private val authService: AuthService) {
         ResponseEntity.status(HttpStatus.CREATED).body(authService.register(dto))
 
     @PostMapping("/login")
-    @Operation(summary = "Iniciar sesión y obtener JWT")
+    @Operation(summary = "Iniciar sesión y obtener un par de tokens (access + refresh)")
     fun login(@RequestBody dto: LoginRequestDTO): ResponseEntity<AuthResponseDTO> =
         ResponseEntity.ok(authService.login(dto))
 
+    @PostMapping("/refresh")
+    @Operation(summary = "Renovar el access token usando un refresh token")
+    fun refresh(@Valid @RequestBody dto: RefreshRequestDTO): ResponseEntity<AuthResponseDTO> =
+        ResponseEntity.ok(authService.refresh(dto.refreshToken))
+
     @PostMapping("/logout")
-    @Operation(summary = "Cerrar sesión y revocar el token actual")
+    @Operation(summary = "Cerrar sesión: revoca el access token y, si se envía, el refresh token")
     fun logout(
-        @RequestHeader(HttpHeaders.AUTHORIZATION, required = false) authHeader: String?
+        @RequestHeader(HttpHeaders.AUTHORIZATION, required = false) authHeader: String?,
+        @RequestBody(required = false) dto: RefreshRequestDTO?
     ): ResponseEntity<Void> {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         }
-        authService.logout(authHeader.substring(7))
+        authService.logout(authHeader.substring(7), dto?.refreshToken)
         return ResponseEntity.ok().build()
     }
 }

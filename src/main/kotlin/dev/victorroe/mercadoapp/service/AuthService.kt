@@ -18,7 +18,8 @@ class AuthService(
     private val passwordEncoder: PasswordEncoder,
     private val jwtService: JwtService,
     private val authenticationManager: AuthenticationManager,
-    private val tokenDenylistService: TokenDenylistService
+    private val tokenDenylistService: TokenDenylistService,
+    private val refreshTokenService: RefreshTokenService
 ) {
 
     fun register(request: RegisterRequestDTO): AuthResponseDTO {
@@ -32,10 +33,7 @@ class AuthService(
             role = Role.USER
         )
         val saved = userRepository.save(user)
-        val token = jwtService.generateToken(
-            saved.id!!, saved.email!!, firstName(saved.fullName), saved.role!!.name
-        )
-        return AuthResponseDTO(token)
+        return issueTokens(saved)
     }
 
     fun login(request: LoginRequestDTO): AuthResponseDTO {
@@ -43,14 +41,29 @@ class AuthService(
             UsernamePasswordAuthenticationToken(request.email, request.password)
         )
         val user = userRepository.findByEmail(request.email).orElseThrow()
-        val token = jwtService.generateToken(
-            user.id!!, user.email!!, firstName(user.fullName), user.role!!.name
-        )
-        return AuthResponseDTO(token)
+        return issueTokens(user)
     }
 
-    fun logout(token: String) {
-        tokenDenylistService.revoke(token)
+    fun refresh(refreshToken: String): AuthResponseDTO {
+        val rotation = refreshTokenService.rotate(refreshToken)
+        val user = userRepository.findById(rotation.userId).orElseThrow()
+        val accessToken = jwtService.generateToken(
+            user.id!!, user.email!!, firstName(user.fullName), user.role!!.name
+        )
+        return AuthResponseDTO(accessToken, rotation.rawToken, jwtService.accessTokenExpiresInSeconds())
+    }
+
+    fun logout(accessToken: String, refreshToken: String?) {
+        tokenDenylistService.revoke(accessToken)
+        refreshToken?.let { refreshTokenService.revoke(it) }
+    }
+
+    private fun issueTokens(user: UserEntity): AuthResponseDTO {
+        val accessToken = jwtService.generateToken(
+            user.id!!, user.email!!, firstName(user.fullName), user.role!!.name
+        )
+        val refreshToken = refreshTokenService.issue(user.id!!)
+        return AuthResponseDTO(accessToken, refreshToken, jwtService.accessTokenExpiresInSeconds())
     }
 
     private fun firstName(fullName: String?): String =
