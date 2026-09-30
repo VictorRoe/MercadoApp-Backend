@@ -1,6 +1,6 @@
-name: GitHub Actions Demo
-run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
-on: [push]
+name: CI
+run-name: "Pruebas de Integracion, autor: ${{ github.actor }}, ID: ${{ github.run_id }}"
+on: push
 jobs:
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
