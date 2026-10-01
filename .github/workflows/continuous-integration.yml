@@ -1,6 +1,16 @@
 name: CI
 run-name: "Continuous Integration(CI) -- ${{ github.actor }}. ID: ${{ github.run_id }}"
-on: push
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'hotfix/**'
+  pull_request:
+    branches:
+      - main
+      - 'feature/**'
+      - 'hotfix/**'
 jobs:
   build:
     runs-on: ubuntu-latest
