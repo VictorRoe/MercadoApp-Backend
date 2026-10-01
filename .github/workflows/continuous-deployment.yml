@@ -1,0 +1,15 @@
+name: CD
+run-name: "Continuous Deployment(CD) -- ${{ github.actor }}. ID: ${{ github.run_id }}"
+needs: CI
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render Deploy
+        run: |
+          curl -X POST "${{ secrets.RRENDER_DEPLOY_HOOK_URL }}"
