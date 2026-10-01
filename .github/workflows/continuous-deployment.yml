@@ -1,14 +1,17 @@
 name: CD
 run-name: "Continuous Deployment(CD) -- ${{ github.actor }}. ID: ${{ github.run_id }}"
-needs: CI
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
     branches:
       - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Trigger Render Deploy
         run: |
