@@ -1,10 +1,12 @@
 plugins {
-	kotlin("jvm") version "2.2.21"
-	kotlin("plugin.spring") version "2.2.21"
+	kotlin("jvm") version "2.4.10"
+	kotlin("plugin.spring") version "2.4.10"
 	id("org.springframework.boot") version "4.0.6"
 	id("io.spring.dependency-management") version "1.1.7"
+	id("dev.detekt") version("2.0.0-alpha.6")
 	kotlin("plugin.jpa") version "2.2.21"
 	kotlin("kapt") version "2.2.21"
+
 }
 
 group = "dev.victorroe"
@@ -86,4 +88,8 @@ allOpen{
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+detekt {
+	ignoreFailures = true
 }
