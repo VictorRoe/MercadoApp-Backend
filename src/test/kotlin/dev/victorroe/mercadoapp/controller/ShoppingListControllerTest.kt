@@ -7,6 +7,9 @@ import dev.victorroe.mercadoapp.dto.shoppinglist.ShoppingListDTO
 import dev.victorroe.mercadoapp.dto.shoppinglist.UpdateShoppingListDTO
 import dev.victorroe.mercadoapp.model.Status
 import dev.victorroe.mercadoapp.service.ShoppingListService
+import dev.victorroe.mercadoapp.config.JwtAuthFilter
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.FilterType
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.BDDMockito.willDoNothing
@@ -18,7 +21,12 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
-@WebMvcTest(ShoppingListController::class)
+@WebMvcTest(
+    controllers = [ShoppingListController::class],
+    excludeFilters = [
+        ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = [JwtAuthFilter::class])
+    ]
+)
 class ShoppingListControllerTest {
 
     @Autowired

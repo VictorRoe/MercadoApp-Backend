@@ -4,6 +4,9 @@ import tools.jackson.databind.ObjectMapper
 import dev.victorroe.mercadoapp.dto.supermarket.CreateSupermarketDTO
 import dev.victorroe.mercadoapp.dto.supermarket.SupermarketDTO
 import dev.victorroe.mercadoapp.service.SupermarketService
+import dev.victorroe.mercadoapp.config.JwtAuthFilter
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.FilterType
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.springframework.beans.factory.annotation.Autowired
@@ -14,7 +17,12 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
-@WebMvcTest(SupermarketController::class)
+@WebMvcTest(
+    controllers = [SupermarketController::class],
+    excludeFilters = [
+        ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = [JwtAuthFilter::class])
+    ]
+)
 class SupermarketControllerTest {
 
     @Autowired

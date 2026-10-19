@@ -11,6 +11,14 @@ on:
       - main
       - 'feature/**'
       - 'hotfix/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -28,11 +36,13 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Build with Gradle
-        run: ./gradlew clean build -x test
+        run: ./gradlew clean build -x test -x jacocoTestCoverageVerification -x detekt
 
   tests:
     needs: build
     runs-on: ubuntu-latest
+    env:
+      JWT_SECRET: ci-only-secret-ci-only-secret-ci-only-secret-0123456789
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
@@ -46,8 +56,40 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
+      - name: Run unit tests and generate coverage report
+        run: ./gradlew test jacocoTestReport
+
+      - name: Verify minimum coverage (80%)
+        run: ./gradlew jacocoTestCoverageVerification
+
+      - name: Coverage summary
+        if: always()
+        run: |
+          python3 - <<'EOF' >> "$GITHUB_STEP_SUMMARY"
+          import os, re
+          path = "build/reports/jacoco/test/jacocoTestReport.xml"
+          if os.path.exists(path):
+              xml = open(path, encoding="utf-8").read()
+              counters = re.findall(r'<counter type="(\w+)" missed="(\d+)" covered="(\d+)"/></report>', xml)
+              print("### Coverage (minimum 80% lines)\n\n| Metric | Covered | Total | % |\n|---|---|---|---|")
+              for kind, missed, covered in counters:
+                  total = int(missed) + int(covered)
+                  pct = 100 * int(covered) / total if total else 0
+                  print(f"| {kind} | {covered} | {total} | {pct:.1f}% |")
+          EOF
+
+      - name: Save test and coverage reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-and-coverage-reports
+          path: |
+            build/reports/tests/test/
+            build/reports/jacoco/test/
+            build/test-results/test/
+
   detekt-analysis:
-    needs: tests
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -59,6 +101,9 @@ jobs:
          java-version: '21'
          distribution: 'temurin'
 
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
       - name: Use detekt
         run: ./gradlew detekt
 
@@ -68,3 +113,30 @@ jobs:
         with:
           name: detekt-reports
           path: '**/build/reports/detekt/'
+
+  vulnerability-scan:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Scan repository (dependencies, secrets, Dockerfile misconfig)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scanners: vuln,secret,misconfig
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '1'
+
+      - name: Build Docker image
+        run: docker build -t mercadoapp:ci .
+
+      - name: Scan Docker image (OS packages and application JAR)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: mercadoapp:ci
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '1'
