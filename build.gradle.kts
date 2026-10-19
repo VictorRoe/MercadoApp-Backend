@@ -4,6 +4,7 @@ plugins {
 	id("org.springframework.boot") version "4.0.6"
 	id("io.spring.dependency-management") version "1.1.7"
 	id("dev.detekt") version("2.0.0-alpha.6")
+	jacoco
 	kotlin("plugin.jpa") version "2.2.21"
 	kotlin("kapt") version "2.2.21"
 
@@ -88,6 +89,51 @@ allOpen{
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+	finalizedBy(tasks.jacocoTestReport)
+}
+
+jacoco {
+	toolVersion = "0.8.13"
+}
+
+
+// Generated (MapStruct) and data-only classes are not meaningful for coverage
+val coverageExclusions = listOf(
+	"**/mapper/*Impl*",
+	"**/entity/**",
+	"**/dto/**",
+	"**/model/**",
+	"**/MercadoappApplication*"
+)
+
+fun JacocoReportBase.excludeFromCoverage() {
+	classDirectories.setFrom(files(classDirectories.files.map { fileTree(it) { exclude(coverageExclusions) } }))
+}
+
+tasks.jacocoTestReport {
+	dependsOn(tasks.test)
+	excludeFromCoverage()
+	reports {
+		xml.required = true
+		html.required = true
+	}
+}
+
+tasks.jacocoTestCoverageVerification {
+	dependsOn(tasks.test)
+	excludeFromCoverage()
+	violationRules {
+		rule {
+			limit {
+				counter = "LINE"
+				minimum = "0.80".toBigDecimal()
+			}
+		}
+	}
+}
+
+tasks.check {
+	dependsOn(tasks.jacocoTestCoverageVerification)
 }
 
 detekt {

@@ -3,6 +3,9 @@ package dev.victorroe.mercadoapp.handler
 import dev.victorroe.mercadoapp.controller.ShoppingListController
 import dev.victorroe.mercadoapp.exception.ResourceNotFoundException
 import dev.victorroe.mercadoapp.service.ShoppingListService
+import dev.victorroe.mercadoapp.config.JwtAuthFilter
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.FilterType
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.springframework.beans.factory.annotation.Autowired
@@ -14,7 +17,12 @@ import org.hamcrest.Matchers.containsString
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
-@WebMvcTest(ShoppingListController::class)
+@WebMvcTest(
+    controllers = [ShoppingListController::class],
+    excludeFilters = [
+        ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = [JwtAuthFilter::class])
+    ]
+)
 class GlobalExceptionHandlerTest {
 
     @Autowired
