@@ -44,3 +44,5 @@ out/
 
 ### SDD ###
 openspec
+
+.env
