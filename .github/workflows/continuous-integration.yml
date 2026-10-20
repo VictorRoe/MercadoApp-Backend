@@ -41,6 +41,8 @@ jobs:
   tests:
     needs: build
     runs-on: ubuntu-latest
+    outputs:
+      coverage: ${{ steps.coverage.outputs.line }}
     env:
       JWT_SECRET: ci-only-secret-ci-only-secret-ci-only-secret-0123456789
     steps:
@@ -63,19 +65,34 @@ jobs:
         run: ./gradlew jacocoTestCoverageVerification
 
       - name: Coverage summary
+        id: coverage
         if: always()
         run: |
-          python3 - <<'EOF' >> "$GITHUB_STEP_SUMMARY"
+          python3 - <<'EOF'
           import os, re
           path = "build/reports/jacoco/test/jacocoTestReport.xml"
-          if os.path.exists(path):
-              xml = open(path, encoding="utf-8").read()
-              counters = re.findall(r'<counter type="(\w+)" missed="(\d+)" covered="(\d+)"/></report>', xml)
-              print("### Coverage (minimum 80% lines)\n\n| Metric | Covered | Total | % |\n|---|---|---|---|")
-              for kind, missed, covered in counters:
-                  total = int(missed) + int(covered)
-                  pct = 100 * int(covered) / total if total else 0
-                  print(f"| {kind} | {covered} | {total} | {pct:.1f}% |")
+          if not os.path.exists(path):
+              raise SystemExit(0)
+          xml = open(path, encoding="utf-8").read()
+          # Report-level totals are the counters left after removing every <package> block
+          totals = re.findall(r'<counter type="(\w+)" missed="(\d+)" covered="(\d+)"/>',
+                              re.sub(r"<package .*?</package>", "", xml, flags=re.S))
+          rows, line_pct = [], 0.0
+          for kind, missed, covered in totals:
+              total = int(missed) + int(covered)
+              pct = 100 * int(covered) / total if total else 0
+              rows.append(f"| {kind} | {covered} | {total} | {pct:.1f}% |")
+              if kind == "LINE":
+                  line_pct = pct
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
+              print("### Coverage (minimum 80% lines)", file=summary)
+              print("", file=summary)
+              print("| Metric | Covered | Total | % |", file=summary)
+              print("|---|---|---|---|", file=summary)
+              for row in rows:
+                  print(row, file=summary)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              print(f"line={line_pct:.1f}", file=out)
           EOF
 
       - name: Save test and coverage reports
@@ -117,6 +134,8 @@ jobs:
   vulnerability-scan:
     needs: build
     runs-on: ubuntu-latest
+    outputs:
+      total: ${{ steps.count.outputs.total }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
@@ -126,9 +145,9 @@ jobs:
         with:
           scan-type: fs
           scanners: vuln,secret,misconfig
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
-          exit-code: '1'
+          format: json
+          output: trivy-fs.json
+          exit-code: '0'
 
       - name: Build Docker image
         run: docker build -t mercadoapp:ci .
@@ -137,6 +156,91 @@ jobs:
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: mercadoapp:ci
+          format: json
+          output: trivy-image.json
+          exit-code: '0'
+
+      - name: Count vulnerabilities
+        id: count
+        run: |
+          python3 - <<'EOF'
+          import json, os
+          from collections import Counter
+          # The same package can show up in both scans; count each finding once
+          findings = {}
+          for path in ("trivy-fs.json", "trivy-image.json"):
+              for result in json.load(open(path)).get("Results") or []:
+                  for v in result.get("Vulnerabilities") or []:
+                      key = (v["VulnerabilityID"], v["PkgName"], v.get("InstalledVersion"))
+                      findings[key] = v
+          by_severity = Counter(v["Severity"] for v in findings.values())
+          blocking = [v for v in findings.values()
+                      if v["Severity"] in ("CRITICAL", "HIGH") and v.get("FixedVersion")]
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
+              print(f"### Vulnerabilities: {len(findings)} total", file=summary)
+              print("", file=summary)
+              print("| Severity | Count |", file=summary)
+              print("|---|---|", file=summary)
+              for sev in ("CRITICAL", "HIGH", "MEDIUM", "LOW", "UNKNOWN"):
+                  print(f"| {sev} | {by_severity.get(sev, 0)} |", file=summary)
+              print("", file=summary)
+              print(f"Blocking (CRITICAL/HIGH with a fix available): {len(blocking)}", file=summary)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              print(f"total={len(findings)}", file=out)
+              print(f"blocking={len(blocking)}", file=out)
+          EOF
+
+      - name: Save vulnerability reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: trivy-reports
+          path: trivy-*.json
+
+      - name: Show CRITICAL/HIGH findings
+        if: steps.count.outputs.blocking != '0'
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: mercadoapp:ci
           severity: CRITICAL,HIGH
           ignore-unfixed: true
-          exit-code: '1'
+          skip-setup-trivy: true
+
+      - name: Fail on CRITICAL/HIGH vulnerabilities with a fix available
+        if: steps.count.outputs.blocking != '0'
+        run: |
+          echo "::error::${{ steps.count.outputs.blocking }} CRITICAL/HIGH vulnerabilities with a fix available"
+          exit 1
+
+  badges:
+    needs: [tests, vulnerability-scan]
+    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Publish badge data to the badges branch
+        env:
+          COVERAGE: ${{ needs.tests.outputs.coverage }}
+          VULNERABILITIES: ${{ needs.vulnerability-scan.outputs.total }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git init -q badges && cd badges
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+          git fetch -q --depth 1 origin badges && git checkout -q badges || git checkout -q --orphan badges
+
+          if [ -n "$COVERAGE" ]; then
+            color=$(python3 -c "c=float('$COVERAGE'); print('brightgreen' if c >= 80 else 'yellow' if c >= 60 else 'red')")
+            echo "{\"schemaVersion\":1,\"label\":\"coverage\",\"message\":\"${COVERAGE}%\",\"color\":\"${color}\"}" > coverage.json
+          fi
+          if [ -n "$VULNERABILITIES" ]; then
+            color=$([ "$VULNERABILITIES" = "0" ] && echo brightgreen || echo orange)
+            echo "{\"schemaVersion\":1,\"label\":\"vulnerabilities\",\"message\":\"${VULNERABILITIES}\",\"color\":\"${color}\"}" > vulnerabilities.json
+          fi
+
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -qm "Update badges"
+          git push -q origin badges

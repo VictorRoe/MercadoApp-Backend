@@ -21,6 +21,9 @@ RUN ./gradlew bootJar -x test --no-daemon
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
+# Actualizar paquetes del sistema para incluir los parches de seguridad de Alpine
+RUN apk upgrade --no-cache
+
 # Crear un usuario sin privilegios para mayor seguridad
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring
