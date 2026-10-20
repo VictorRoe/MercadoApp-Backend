@@ -1,7 +1,7 @@
 plugins {
 	kotlin("jvm") version "2.4.10"
 	kotlin("plugin.spring") version "2.4.10"
-	id("org.springframework.boot") version "4.0.6"
+	id("org.springframework.boot") version "4.0.8"
 	id("io.spring.dependency-management") version "1.1.7"
 	id("dev.detekt") version("2.0.0-alpha.6")
 	jacoco
@@ -22,6 +22,11 @@ java {
 repositories {
 	mavenCentral()
 }
+
+// Patched versions above what Spring Boot 4.0.8 manages, to fix known CVEs
+extra["tomcat.version"] = "11.0.27"
+extra["jackson-2-bom.version"] = "2.21.8"
+extra["jackson-bom.version"] = "3.1.8"
 
 dependencies {
 
